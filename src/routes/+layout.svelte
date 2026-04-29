@@ -40,7 +40,7 @@
         goto('/auth');
     }
 
-function isActive(path: string) {
+function isActive(path) {
         return $page.url.pathname === path || $page.url.pathname.startsWith(path + '/');
     }
 
