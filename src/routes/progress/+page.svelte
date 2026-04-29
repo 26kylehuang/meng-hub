@@ -88,4 +88,82 @@
                     <h2 class="font-black text-slate-800 tracking-tight">Recent Drill Scores</h2>
                 </div>
 
-                {#if hi
+                {#if history.length === 0}
+                    <div class="px-6 py-12 text-center text-slate-400">
+                        <p class="font-bold text-sm">No drills yet.</p>
+                        <p class="text-xs mt-1">Open a lesson and take a practice quiz.</p>
+                    </div>
+                {:else}
+                    <div class="px-6 pt-6 pb-2 flex items-end gap-1.5 h-28">
+                        {#each sparkScores as score}
+                            <div class="flex-1 flex flex-col items-center gap-1">
+                                <div class="w-full rounded-t {barColor(score)}" style="height: {Math.max(4, (score / 100) * 72)}px"></div>
+                            </div>
+                        {/each}
+                    </div>
+                    <div class="px-6 pb-1 flex gap-1.5">
+                        {#each sparkScores as score}
+                            <div class="flex-1 text-center text-[9px] font-bold text-slate-400">{score}%</div>
+                        {/each}
+                    </div>
+                    <div class="divide-y divide-slate-100 mt-2">
+                        {#each history.slice(0, 8) as row (row.id)}
+                            <a href="/class/{row.lesson_id}" class="flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition-colors">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-slate-800 truncate">{row.lessons?.title ?? 'Lesson'}</p>
+                                    <p class="text-xs text-slate-400">{timeSince(row.completed_at)}</p>
+                                </div>
+                                <span class="text-base font-black ml-4 {scoreColor(row.score)}">{row.score}%</span>
+                            </a>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h2 class="font-black text-slate-800 tracking-tight">Active Nemeses</h2>
+                    {#if nemesisCount > 0}
+                        <a href="/quiz/nemesis-mode" class="text-xs font-black text-white bg-rose-600 hover:bg-rose-500 px-4 py-1.5 rounded-lg transition-colors">
+                            ⚔️ Drill Now
+                        </a>
+                    {/if}
+                </div>
+
+                {#if activeNemesis.length === 0}
+                    <div class="px-6 py-12 text-center text-slate-400">
+                        <span class="text-3xl block mb-3">✨</span>
+                        <p class="font-bold text-sm">Queue is clear!</p>
+                        <p class="text-xs mt-1">Take more quizzes to track your weak spots.</p>
+                    </div>
+                {:else}
+                    <div class="divide-y divide-slate-100">
+                        {#each activeNemesis as row (row.block_id)}
+                            <div class="flex items-center justify-between px-6 py-3">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-slate-800 truncate">{row.blocks?.lessons?.title ?? 'Unknown Lesson'}</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">{row.blocks?.content_json?.topic ?? 'General concept'}</p>
+                                </div>
+                                <div class="ml-4 shrink-0 flex items-center gap-1.5">
+                                    {#each Array(Math.min(row.consecutive_fails, 5)) as _}
+                                        <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+                                    {/each}
+                                    <span class="text-xs font-black text-rose-600 ml-1">{row.consecutive_fails}✗</span>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+
+                    {#if nemesisCount > 0}
+                        <div class="p-5 bg-rose-50 border-t border-rose-100">
+                            <a href="/quiz/nemesis-mode"
+                                class="block w-full py-3 rounded-xl font-black text-sm text-center bg-rose-600 text-white hover:bg-rose-500 hover:-translate-y-0.5 transition-all shadow-md shadow-rose-200">
+                                ⚔️ Conquer Your Nemesis ({nemesisCount} question{nemesisCount !== 1 ? 's' : ''})
+                            </a>
+                        </div>
+                    {/if}
+                {/if}
+            </div>
+        </div>
+    </div>
+</div>
