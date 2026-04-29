@@ -1,0 +1,92 @@
+import { json } from '@sveltejs/kit';
+import { OPENROUTER_API_KEY } from '$env/static/private';
+
+export async function POST({ request, locals }) {
+    const { session, userRole, supabase } = locals;
+    if (!session || (userRole !== 'admin' && userRole !== 'warren')) {
+        return json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const { text, lessonTitle, classId } = await request.json();
+    if (!text) return json({ error: 'No text provided' }, { status: 400 });
+
+    const { data: existing } = await supabase.from('concepts').select('id, title');
+    const existingMap = Object.fromEntries((existing ?? []).map((c: any) => [c.title.toLowerCase(), c.id]));
+    const existingList = Object.keys(existingMap).join(', ');
+
+    const systemPrompt = `You are a Zettelkasten knowledge extractor for Meng Hub, an AP exam platform.
+
+Given academic text, extract ALL important concepts that deserve their own definition card.
+
+EXISTING CONCEPTS (do not duplicate): ${existingList || 'none yet'}
+
+For each NEW concept provide:
+- "title": canonical term (proper noun form)
+- "definition": 2-3 sentences. What it is, why it matters, one key fact.
+- "connection": one sentence connecting to related concepts
+- "example": a concrete specific example
+
+OUTPUT JSON only:
+{
+  "concepts": [{ "title": "...", "definition": "...", "connection": "...", "example": "..." }],
+  "skip_existing": ["terms that already exist"]
+}
+
+Extract 5-15 concepts. Focus on proper nouns, technical terms, historical events, people, theories, formulas.`;
+
+    try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://menghub.com',
+                'X-Title': 'Meng Hub Zettelkasten Extractor',
+            },
+            body: JSON.stringify({
+                model: 'anthropic/claude-3.5-sonnet',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `Lesson: "${lessonTitle ?? 'Unknown'}"\n\n${text.slice(0, 4000)}` },
+                ],
+                response_format: { type: 'json_object' },
+            }),
+            signal: AbortSignal.timeout(60000),
+        });
+
+        if (!res.ok) return json({ error: `OpenRouter error: ${res.status}` }, { status: 502 });
+        const data = await res.json();
+        const extracted = JSON.parse(data.choices[0].message.content);
+
+        const saved = [];
+        const skipped = [];
+
+        for (const c of (extracted.concepts ?? [])) {
+            if (!c.title) continue;
+            if (existingMap[c.title.toLowerCase()]) { skipped.push(c.title); continue; }
+
+            const contentJson = [
+                { type: 'paragraph', content: c.definition },
+                { type: 'tip', title: 'Connection', content: c.connection },
+                { type: 'paragraph', content: `Example: ${c.example}` },
+            ];
+
+            const { data: row, error } = await supabase
+                .from('concepts')
+                .insert({ title: c.title, content_json: contentJson, class_ids: classId ? [classId] : [] })
+                .select('id, title')
+                .single();
+
+            if (!error && row) saved.push(row);
+        }
+
+        return json({
+            success: true,
+            saved,
+            skipped_existing: [...(extracted.skip_existing ?? []), ...skipped],
+        });
+
+    } catch (e: any) {
+        return json({ error: e.message ?? 'Extraction failed' }, { status: 500 });
+    }
+}
