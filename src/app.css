@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;500&display=swap');
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { font-family: 'Inter', system-ui, sans-serif; }
+}
+
+.bg-stars {
+  background-color: #0B0F19;
+  background-image:
+    radial-gradient(2px 2px at  20px  30px, rgba(255,255,255,0.90), transparent),
+    radial-gradient(2px 2px at  90px  40px, rgba(255,255,255,0.85), transparent),
+    radial-gradient(2px 2px at 130px  80px, rgba(248,250,252,0.80), transparent),
+    radial-gradient(2px 2px at 175px 130px, rgba(255,255,255,0.70), transparent),
+    radial-gradient(1px 1px at  40px  70px, rgba(226,232,240,0.70), transparent),
+    radial-gradient(1px 1px at  50px 160px, rgba(203,213,225,0.65), transparent),
+    radial-gradient(1px 1px at 100px 110px, rgba(226,232,240,0.60), transparent),
+    radial-gradient(1px 1px at 160px  20px, rgba(248,250,252,0.55), transparent),
+    radial-gradient(1px 1px at 190px  90px, rgba(203,213,225,0.50), transparent),
+    radial-gradient(1px 1px at  10px  90px, rgba(148,163,184,0.40), transparent),
+    radial-gradient(1px 1px at  60px 140px, rgba(148,163,184,0.35), transparent),
+    radial-gradient(1px 1px at 110px  55px, rgba(148,163,184,0.30), transparent),
+    radial-gradient(1px 1px at 145px 170px, rgba(148,163,184,0.35), transparent),
+    radial-gradient(1px 1px at  80px 190px, rgba(148,163,184,0.25), transparent),
+    radial-gradient(1px 1px at  30px 115px, rgba(100,116,139,0.20), transparent),
+    radial-gradient(1px 1px at 155px  45px, rgba(100,116,139,0.20), transparent),
+    radial-gradient(1px 1px at  70px  30px, rgba(100,116,139,0.15), transparent);
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+.bg-archive {
+  background-color: #FAFAF8;
+  background-image:
+    radial-gradient(ellipse at top left, rgba(219,234,254,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(241,245,249,0.20) 0%, transparent 60%);
+}
+
+.bg-dashboard {
+  background-color: #F8F9FB;
+  background-image:
+    radial-gradient(ellipse at 10% 20%, rgba(219,234,254,0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, rgba(240,253,244,0.15) 0%, transparent 50%);
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+  50%       { box-shadow: 0 0 50px rgba(59,130,246,0.6); }
+}
+
+.animate-pulse-glow-rose {
+  animation: pulseGlowRose 3s ease-in-out infinite;
+}
+@keyframes pulseGlowRose {
+  0%, 100% { box-shadow: 0 0 20px rgba(225,29,72,0.2); }
+  50%       { box-shadow: 0 0 50px rgba(225,29,72,0.5); }
+}
+
+.font-serif { font-family: 'Merriweather', Georgia, serif; }
+
+.glass-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-area-pt { padding-top: env(safe-area-inset-top, 0px); }
