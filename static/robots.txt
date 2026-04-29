@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /blog
+Allow: /auth
+Disallow: /admin
+Disallow: /forge
+Disallow: /warren
+Disallow: /dashboard
+Disallow: /progress
+Disallow: /profile
+Disallow: /quiz
+Disallow: /class
+Disallow: /api
+Sitemap: https://menghub.com/sitemap.xml
