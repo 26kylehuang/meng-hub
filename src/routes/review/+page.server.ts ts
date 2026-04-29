@@ -1,0 +1,107 @@
+import { redirect, fail } from '@sveltejs/kit';
+
+export const load = async ({ locals: { supabase, session, userRole } }) => {
+    if (!session) throw redirect(303, '/auth');
+    if (userRole !== 'admin') throw redirect(303, '/');
+
+    const { data: pendingBlocks } = await supabase
+        .from('blocks')
+        .select(`
+            id, type, content, content_json, caption, sequence_order,
+            created_at, warren_notes, review_instruction,
+            lessons(id, title, units(title, classes(title, is_ap)))
+        `)
+        .eq('status', 'pending_review')
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+    const { data: publishedBlocks } = await supabase
+        .from('blocks')
+        .select(`
+            id, type, content, content_json, caption, sequence_order, created_at,
+            lessons(id, title, units(title, classes(title)))
+        `)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+    return {
+        pendingBlocks: pendingBlocks ?? [],
+        publishedBlocks: publishedBlocks ?? [],
+    };
+};
+
+export const actions = {
+    approve: async ({ request, locals: { supabase } }) => {
+        const data = await request.formData();
+        const blockId     = data.get('block_id') as string;
+        const content     = data.get('content') as string | null;
+        const contentJson = data.get('content_json') as string | null;
+        if (!blockId) return fail(400, { error: 'Missing block_id' });
+
+        const updateData: any = { status: 'draft', review_instruction: null };
+        if (content !== null && content !== '') updateData.content = content;
+        if (contentJson) {
+            try { updateData.content_json = JSON.parse(contentJson); } catch {}
+        }
+
+        const { error } = await supabase.from('blocks').update(updateData).eq('id', blockId);
+        if (error) return fail(500, { error: error.message });
+        return { success: true, action: 'approved' };
+    },
+
+    approvePublished: async ({ request, locals: { supabase } }) => {
+        const data = await request.formData();
+        const blockId     = data.get('block_id') as string;
+        const content     = data.get('content') as string | null;
+        const contentJson = data.get('content_json') as string | null;
+        if (!blockId) return fail(400, { error: 'Missing block_id' });
+
+        const updateData: any = { status: 'published', review_instruction: null };
+        if (content !== null && content !== '') updateData.content = content;
+        if (contentJson) {
+            try { updateData.content_json = JSON.parse(contentJson); } catch {}
+        }
+
+        const { error } = await supabase.from('blocks').update(updateData).eq('id', blockId);
+        if (error) return fail(500, { error: error.message });
+        return { success: true, action: 'republished' };
+    },
+
+    reject: async ({ request, locals: { supabase } }) => {
+        const data = await request.formData();
+        const blockId = data.get('block_id') as string;
+        if (!blockId) return fail(400, { error: 'Missing block_id' });
+        const { error } = await supabase.from('blocks').delete().eq('id', blockId);
+        if (error) return fail(500, { error: error.message });
+        return { success: true, action: 'rejected' };
+    },
+
+    approveAll: async ({ request, locals: { supabase } }) => {
+        const data = await request.formData();
+        const lessonId = data.get('lesson_id') as string;
+        if (!lessonId) return fail(400, { error: 'Missing lesson_id' });
+        const { error } = await supabase
+            .from('blocks')
+            .update({ status: 'draft', review_instruction: null })
+            .eq('lesson_id', lessonId)
+            .eq('status', 'pending_review');
+        if (error) return fail(500, { error: error.message });
+        return { success: true, action: 'approvedAll' };
+    },
+
+    pushback: async ({ request, locals: { supabase } }) => {
+        const data = await request.formData();
+        const blockId = data.get('block_id') as string;
+        const instruction = (data.get('instruction') as string)?.trim();
+        if (!blockId) return fail(400, { error: 'Missing block_id' });
+
+        const { error } = await supabase
+            .from('blocks')
+            .update({ status: 'pending_review', review_instruction: instruction || null })
+            .eq('id', blockId);
+
+        if (error) return fail(500, { error: error.message });
+        return { success: true, action: 'pushedback' };
+    },
+};
