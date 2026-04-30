@@ -397,7 +397,7 @@
                                 on:insert={() => {}}
                                 on:select={e => {
                                     const c = e.detail.concept;
-                                    const preview = (c.content_json ?? []).find((b: any) => b.type === 'paragraph')?.content ?? '';
+                                    const preview = (c.content_json ?? []).find((b) => b.type === 'paragraph')?.content ?? '';
                                     spotlightContent = { type: 'concept', title: c.title, text: preview };
                                     conceptSearchOpen = false;
                                 }} />
