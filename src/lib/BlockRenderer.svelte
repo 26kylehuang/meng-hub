@@ -267,9 +267,8 @@
                             </span>
                             <p class="text-slate-800 font-semibold text-sm leading-relaxed">{part.prompt}</p>
                         </div>
-                        <textarea bind:value={frqAnswers[i]} placeholder="Write your response here…" rows="4"
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-serif leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y mb-3">
-                        </textarea>
+<textarea bind:value={frqAnswers[i]} disabled={isSubmitted} placeholder="Write your response here…" rows="4"
+    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-serif leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y mb-3"></textarea>
                         {#if !frqRevealed[i]}
                             <button on:click={() => revealFrq(i)} class="text-xs font-bold text-blue-600 hover:underline">
                                 Show model answer →
